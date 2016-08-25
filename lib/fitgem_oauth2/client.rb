@@ -83,9 +83,13 @@ module FitgemOauth2
 
       error_handler = {
           200..201 => lambda {
-            body = JSON.parse(response.body)
-            body = {body: body} if body.is_a?(Array)
-            body.merge!(response.headers.slice(*headers_to_keep))
+            if response['content-type'] == 'application/vnd.garmin.tcx+xml;charset=UTF-8'
+              response.body
+            else
+              body = JSON.parse(response.body)
+              body = {body: body} if body.is_a?(Array)
+              body.merge!(response.headers.slice(*headers_to_keep))
+            end
           },
           204 => lambda { response.headers.slice(*headers_to_keep) },
           400 => lambda { raise FitgemOauth2::BadRequestError },
