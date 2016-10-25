@@ -42,6 +42,27 @@ describe FitgemOauth2::Client do
       expect(client).to receive(:post_call).with(url).and_return(subscriptions)
       expect(client.create_subscription(type: :sleep, subscription_id: subscription_id)).to eql(subscriptions)
     end
+
+    it 'raises error with message' do
+      connection = double
+      response = double(
+        status: 403,
+        body: {
+          errors: [
+            {
+              errorType: 'insufficient_scope',
+              message: 'This application does not have permission to [access-type] [resource-type] data.'
+            }
+          ],
+          success: false
+        }.to_json
+      )
+      expect(Faraday).to receive(:new).and_return(connection)
+      expect(connection).to receive(:post).and_return(response)
+      expect do
+        client.create_subscription(subscription_id: subscription_id)
+      end.to raise_error(FitgemOauth2::ForbiddenError, JSON.parse(response.body).to_s)
+    end
   end
 
   describe '#remove_subscription' do

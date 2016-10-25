@@ -92,10 +92,10 @@ module FitgemOauth2
             end
           },
           204 => lambda { response.headers.slice(*headers_to_keep) },
-          400 => lambda { raise FitgemOauth2::BadRequestError },
-          401 => lambda { raise FitgemOauth2::UnauthorizedError },
-          403 => lambda { raise FitgemOauth2::ForbiddenError },
-          404 => lambda { raise FitgemOauth2::NotFoundError },
+          400 => lambda { raise FitgemOauth2::BadRequestError.new(JSON.parse(response.body)) },
+          401 => lambda { raise FitgemOauth2::UnauthorizedError.new(JSON.parse(response.body)) },
+          403 => lambda { raise FitgemOauth2::ForbiddenError.new(JSON.parse(response.body)) },
+          404 => lambda { raise FitgemOauth2::NotFoundError.new(JSON.parse(response.body)) },
           405 => lambda { raise FitgemOauth2::NotAllowedError },
           409 => lambda { raise FitgemOauth2::ConflictError },
           500..599 => lambda { raise FitgemOauth2::ServerError }
