@@ -52,6 +52,15 @@ module FitgemOauth2
       JSON.parse(response.body)
     end
 
+    def revoke_access_token(token)
+      response = connection.post('/oauth2/revoke') do |request|
+        encoded = Base64.strict_encode64("#{@client_id}:#{@client_secret}")
+        request.headers['Authorization'] = "Basic #{encoded}"
+        request.params['token'] = token
+      end
+      JSON.parse(response.body)
+    end
+
     def get_call(url)
       url = "#{API_VERSION}/#{url}"
       response = connection.get(url) { |request| set_headers(request) }
