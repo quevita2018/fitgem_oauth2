@@ -104,7 +104,7 @@ module FitgemOauth2
           400 => lambda { raise FitgemOauth2::BadRequestError.new(JSON.parse(response.body)) },
           401 => lambda { raise FitgemOauth2::UnauthorizedError.new(JSON.parse(response.body)) },
           403 => lambda { raise FitgemOauth2::ForbiddenError.new(JSON.parse(response.body)) },
-          404 => lambda { raise FitgemOauth2::NotFoundError.new(JSON.parse(response.body)) },
+          404 => lambda { raise FitgemOauth2::NotFoundError.new(response.body) },
           405 => lambda { raise FitgemOauth2::NotAllowedError },
           409 => lambda { raise FitgemOauth2::ConflictError },
           429 => lambda { raise FitgemOauth2::RateLimitError },
