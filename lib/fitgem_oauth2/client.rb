@@ -95,8 +95,9 @@ module FitgemOauth2
             if response['content-type'] == 'application/vnd.garmin.tcx+xml;charset=UTF-8'
               response.body
             else
-              body = JSON.parse(response.body)
-              body = {body: body} if body.is_a?(Array)
+              body = response.body
+              body = SafeJsonParser.parse(body, body)
+              body = { body: body } if body.is_a?(Array) || body.is_a?(String)
               body.merge!(response.headers.slice(*headers_to_keep))
             end
           },
