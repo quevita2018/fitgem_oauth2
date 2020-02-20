@@ -16,6 +16,7 @@ GEM
     ast (2.2.0)
     codeclimate-test-reporter (0.5.0)
       simplecov (>= 0.7.1, < 1.0.0)
+    coderay (1.1.1)
     diff-lcs (1.2.5)
     docile (1.1.5)
     factory_girl (4.7.0)
@@ -24,11 +25,16 @@ GEM
       multipart-post (>= 1.2, < 3)
     i18n (0.7.0)
     json (1.8.3)
+    method_source (0.8.2)
     minitest (5.8.4)
     multipart-post (2.0.0)
     parser (2.3.0.7)
       ast (~> 2.2)
     powerpack (0.1.1)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     rainbow (2.0.0)
     rake (10.5.0)
     rspec (3.4.0)
@@ -56,6 +62,7 @@ GEM
       json (~> 1.8)
       simplecov-html (~> 0.10.0)
     simplecov-html (0.10.0)
+    slop (3.6.0)
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
@@ -68,6 +75,10 @@ DEPENDENCIES
   codeclimate-test-reporter
   factory_girl (~> 4.5)
   fitgem_oauth2!
+  pry
   rake (~> 10.5)
   rspec (~> 3.4)
   rubocop
+
+BUNDLED WITH
+   1.12.5

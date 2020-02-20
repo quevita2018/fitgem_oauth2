@@ -19,6 +19,7 @@ module FitgemOauth2
 
     DEFAULT_USER_ID = '-'
     API_VERSION = '1'
+    ONE_MONTH = 30 * 24 * 60 * 60
 
     attr_reader :client_id
     attr_reader :client_secret
@@ -39,13 +40,23 @@ module FitgemOauth2
       @connection = Faraday.new('https://api.fitbit.com')
     end
 
-    def refresh_access_token(refresh_token)
+    def refresh_access_token(refresh_token, opts = {})
       response = connection.post('/oauth2/token') do |request|
         encoded = Base64.strict_encode64("#{@client_id}:#{@client_secret}")
         request.headers['Authorization'] = "Basic #{encoded}"
         request.headers['Content-Type'] = 'application/x-www-form-urlencoded'
         request.params['grant_type'] = 'refresh_token'
         request.params['refresh_token'] = refresh_token
+        request.params['expires_in'] = opts[:expires_in] || ONE_MONTH
+      end
+      JSON.parse(response.body)
+    end
+
+    def revoke_access_token(token)
+      response = connection.post('/oauth2/revoke') do |request|
+        encoded = Base64.strict_encode64("#{@client_id}:#{@client_secret}")
+        request.headers['Authorization'] = "Basic #{encoded}"
+        request.params['token'] = token
       end
       JSON.parse(response.body)
     end
@@ -80,15 +91,24 @@ module FitgemOauth2
       headers_to_keep = %w(fitbit-rate-limit-limit fitbit-rate-limit-remaining fitbit-rate-limit-reset)
 
       error_handler = {
-          200 => lambda {
-            body = JSON.parse(response.body)
-            body = {body: body} if body.is_a?(Array)
-            body.merge!(response.headers.slice(*headers_to_keep))
+          200..201 => lambda {
+            if response['content-type'] == 'application/vnd.garmin.tcx+xml;charset=UTF-8'
+              response.body
+            else
+              body = response.body
+              body = SafeJsonParser.parse(body, body)
+              body = { body: body } if body.is_a?(Array) || body.is_a?(String)
+              body.merge!(response.headers.slice(*headers_to_keep))
+            end
           },
-          400 => lambda { raise FitgemOauth2::BadRequestError },
-          401 => lambda { raise FitgemOauth2::UnauthorizedError },
-          403 => lambda { raise FitgemOauth2::ForbiddenError },
-          404 => lambda { raise FitgemOauth2::NotFoundError },
+          204 => lambda { response.headers.slice(*headers_to_keep) },
+          400 => lambda { raise FitgemOauth2::BadRequestError.new(JSON.parse(response.body)) },
+          401 => lambda { raise FitgemOauth2::UnauthorizedError.new(JSON.parse(response.body)) },
+          403 => lambda { raise FitgemOauth2::ForbiddenError.new(JSON.parse(response.body)) },
+          404 => lambda { raise FitgemOauth2::NotFoundError.new(response.body) },
+          405 => lambda { raise FitgemOauth2::NotAllowedError },
+          409 => lambda { raise FitgemOauth2::ConflictError },
+          429 => lambda { raise FitgemOauth2::RateLimitError },
           500..599 => lambda { raise FitgemOauth2::ServerError }
       }
 
